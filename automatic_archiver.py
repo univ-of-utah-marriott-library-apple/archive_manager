@@ -1,26 +1,52 @@
 #!/usr/bin/env python
 
 import argparse
-
-import automatic_archiver
 import sys
+import time
+
+from datetime import datetime
+
+import automatic_archiver.archivers
+from automatic_archiver.formatting import granularity
+from automatic_archiver.formatting import date
 
 options = {}
 options['long_name'] = "Automatic Archiver"
 options['name']      = "automatic_archiver.py"
-options['version']   = 0.1
+options['version']   = 0.2
 
-def main(origin, destination, flat, granularity, replace, logger):
+def main(origin, destination, flat, grain, replace, logger):
     logger.info('-' * 80)
-    logger.info("Archiving from '" + origin + "' to '" + destination + "'.")
+    logger.info("Archiving from:     " + origin)
+    logger.info("Archiving to:       " + destination)
+    try:
+        granularity(grain)
+    except:
+        logger.error("Bad granularity:   " + str(grain) + " [using default: 3]")
+        grain = 3
+    finally:
+        logger.info("Granularity set to: " + granularity(grain) +
+                    " [" + granularity(grain, False) + "]")
+    logger.info("Date format set to: " + date(grain) +
+                " [currently: " + datetime.now().strftime(date(grain)) + "]")
+    message =   "Structure set to:   "
     if flat:
-        logger.info("Using flat structure; will rename files accordingly.")
+        message += "flat (date will be appended to front of file names0"
     else:
-        logger.info("Using nested directories structure.")
+        message += "nested directories (file names will not be modified)"
+    logger.info(message)
+    logger.info("Will begin in ten seconds...")
+    time.sleep(1)
+    logger.info('')
+    logger.info("BEGINNING ARCHIVAL")
 
+    if flat:
+        autoamtic_archiver.archivers.flat(origin, destination, replace, grain, logger)
+    else:
+        automatic_archiver.archivers.nested(origin, destination, replace, grain, logger)
 
 class ArgumentParser(argparse.ArgumentParser):
-    '''I like my own style of error-handling, thank you.'''
+    '''Custom ArgumentParser for error handling.'''
 
     def error(self, message):
         print("Error: {}\n".format(message))
@@ -61,23 +87,6 @@ def setup_logger(log, log_dest):
             logger = loggers.file_logger(options['name'])
     return logger
 
-def granularity(grain):
-    word_map = {
-        'year':   '1',
-        'month':  '2',
-        'day':    '3',
-        'hour':   '4',
-        'minute': '5',
-        'second': '6'
-    }
-    int_map = {v:k for k, v in word_map.items()}
-    if grain in word_map.keys():
-        return int(word_map[grain])
-    elif grain in int_map.keys():
-        return int(grain)
-    else:
-        raise RuntimeError("No such granularity: " + grain)
-
 if __name__ == '__main__':
     parser = ArgumentParser(add_help=False)
     parser.add_argument('-h', '--help', action='store_true')
@@ -86,7 +95,7 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--log-dest')
 
     parser.add_argument('--flat', action='store_true', default=False)
-    parser.add_argument('--granularity', default='day')
+    parser.add_argument('--granularity', default='day', dest='grain')
     parser.add_argument('--replace', action='store_true', default=True)
     parser.add_argument('origin', nargs='?')
     parser.add_argument('destination', nargs='?')
@@ -109,10 +118,14 @@ if __name__ == '__main__':
                 origin      = args.origin,
                 destination = args.destination,
                 flat        = args.flat,
-                granularity = granularity(args.granularity),
+                grain       = args.grain,
                 replace     = args.replace,
                 logger      = logger
             )
+        except KeyboardInterrupt:
+            print("\033[2K\nStopped.") # '\033[2K' is an ANSI escape sequence
+                                          # to clear the entire line.
+            logger.fatal("KeybaordInterrupt given. Forced to quit.")
         except:
             message = (
                 str(sys.exc_info()[0].__name__) + ": " +
