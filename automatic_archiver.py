@@ -13,9 +13,9 @@ from automatic_archiver.formatting import date
 options = {}
 options['long_name'] = "Automatic Archiver"
 options['name']      = "automatic_archiver.py"
-options['version']   = 0.3
+options['version']   = 0.4
 
-def main(origin, destination, flat, grain, replace, persist, logger):
+def main(origin, destination, flat, delimiter, grain, replace, persist, logger):
     logger.info('-' * 80)
     logger.info("Archiving from:     " + origin)
     logger.info("Archiving to:       " + destination)
@@ -32,7 +32,7 @@ def main(origin, destination, flat, grain, replace, persist, logger):
                 " [currently: " + datetime.now().strftime(date(grain)) + "]")
     message =   "Structure set to:   "
     if flat:
-        message += "flat (date will be appended to front of file names0"
+        message += "flat (date will be appended to front of file names)"
     else:
         message += "nested directories (file names will not be modified)"
     logger.info(message)
@@ -42,9 +42,13 @@ def main(origin, destination, flat, grain, replace, persist, logger):
     logger.info("BEGINNING ARCHIVAL")
 
     if flat:
-        autoamtic_archiver.archivers.flat(origin, destination, replace, grain, persist, logger)
+        automatic_archiver.archivers.flat(
+            origin, destination, replace, grain, persist, delimiter, logger
+        )
     else:
-        automatic_archiver.archivers.nested(origin, destination, replace, grain, persist, logger)
+        automatic_archiver.archivers.nested(
+            origin, destination, replace, grain, persist, logger
+        )
 
 class ArgumentParser(argparse.ArgumentParser):
     '''Custom ArgumentParser for error handling.'''
@@ -67,7 +71,57 @@ def usage(short=False):
         version()
 
     print('''\
-usage: {name} [-hv]
+usage: {name} [-hvn] [-l log] [--flat] [--granularity]
+\t[--replace] [--persist] origin destination
+
+Automatically archives files from `origin` into `destination`. This can either
+be done in a nested directory format using date components as the directories,
+or else it can be done in a flat format where the date will be prepended to the
+archived file.
+
+    -h, --help
+        Prints this usage information and quits.
+    -v, --version
+        Prints only the version information and quits.
+    -n, --no-log
+        Redirects logging to the console (stdio).
+    -l log, --log-dest log
+        Outputs log files to `log` instead of the default. (This is overrideden
+        by --no-log.)
+
+    --granularity
+        Determines how many aspects of the date should be used in sorting. See
+        section GRANULARITY below for possible options.
+    --flat
+        When given, the archived files will all go into `destination` without
+        the creation of subdirectories. Instead, they will have the date
+        prepended to the front of the file names.
+    --delimiter delimiter
+        If using --flat, this will place `delimiter` between the date items that
+        are prepended to the file name. The default is a period ('.').
+    --no-replace
+        If given, when a file is discovered in the destination which matches the
+        name of a file to be archvied, the file that is already there will be
+        left alone. The default is to replace it with the non-archived one.
+    --persist
+        Leaves the original files in their places and only copies them to
+        `destination`.
+
+GRANULARITY
+    Different applications of archival may require different levels of what can
+    be called "granularity", i.e. how much precision is required to
+    differentiate the files. Currently there are six levels of precision that
+    are supported:
+
+        1    Year
+        2    Month
+        3    Day
+        4    Hour
+        5    Minute
+        6    Second
+
+    The granularity can be given either as the number (1, 2, ...) or the word
+    form ('Year', 'month', ...).
 \
 '''.format(name=options['name']))
 
@@ -95,10 +149,11 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--no-log', action='store_true')
     parser.add_argument('-l', '--log-dest')
 
-    parser.add_argument('--flat', action='store_true', default=False)
+    parser.add_argument('--flat', action='store_true')
     parser.add_argument('--granularity', default='day', dest='grain')
-    parser.add_argument('--replace', action='store_true', default=True)
-    parser.add_argument('--persist', action='store_true', default=False)
+    parser.add_argument('--no-replace', action='store_true')
+    parser.add_argument('--persist', action='store_true')
+    parser.add_argument('--delimiter', default='.')
     parser.add_argument('origin', nargs='?')
     parser.add_argument('destination', nargs='?')
     args = parser.parse_args()
@@ -120,8 +175,9 @@ if __name__ == '__main__':
                 origin      = args.origin,
                 destination = args.destination,
                 flat        = args.flat,
-                grain       = args.grain,
-                replace     = args.replace,
+                delimiter   = args.delimiter,
+                grain       = args.grain.lower(),
+                replace     = not args.no_replace,
                 persist     = args.persist,
                 logger      = logger
             )

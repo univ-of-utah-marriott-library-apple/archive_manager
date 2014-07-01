@@ -65,7 +65,7 @@ def nested(origin, destination, replace=True, grain=3, persist=False, logger=Non
                 ))
                 shutil.move(file, path)
 
-def flat(origin, destination, replace=True, grain=3, persist=False, logger=None):
+def flat(origin, destination, replace=True, grain=3, persist=False, delimiter='.', logger=None):
     if not logger:
         logger = loggers.stream_logger(1)
     date = formatting.date(grain)
