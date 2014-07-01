@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from datetime import datetime
 
@@ -10,14 +11,14 @@ except ImportError as e:
     print "https://github.com/univ-of-utah-marriott-library-apple/management_tools"
     raise e
 
-def nested(origin, destination, replace=True, grain=3, logger=None):
+def nested(origin, destination, replace=True, grain=3, persist=False, logger=None):
     if not logger:
         logger = loggers.stream_logger(1)
     date = formatting.date(grain)
 
     if not os.path.isdir(destination):
-        logger.error("No folder found at: " + destination)
-        # os.makedirs(destination)
+        logger.error("Creating destination directory at: " + destination)
+        os.makedirs(destination)
 
     if not os.path.isdir(origin):
         raise RuntimeError("No such origin directory: " + origin)
@@ -27,14 +28,66 @@ def nested(origin, destination, replace=True, grain=3, logger=None):
         payload = sorted([os.path.abspath(x) for x in os.listdir('.')])
 
     with ChDir(destination):
-        logger.info("Creating nested directory structure in destination.")
+        logger.info("Creating nested directory structure in: " +
+                    os.path.abspath(destination))
+        dirs_needed = []
+        file_paths  = {}
+        max_file_length = 0
         for file in payload:
-            print("  {:<9}: ".format(os.path.basename(file)) + str(datetime.fromtimestamp(os.path.getmtime(file)).strftime(date)))
+            time = datetime.fromtimestamp(os.path.getmtime(file))
+            dirs = time.strftime(date).split('.')
+            leaf = os.path.join(*dirs)
+            dirs_needed.append(leaf)
+            file_paths[file] = leaf
+            if len(os.path.basename(file)) > max_file_length:
+                max_file_length = len(os.path.basename(file))
+        dirs_needed = uniquify(dirs_needed)
+        for dir in dirs_needed:
+            if not os.path.isdir(dir):
+                logger.info("  ./" + dir)
+                os.makedirs(dir)
+        logger.info(
+            "{} files to appropriate subdirectories...".format(
+            "Moving" if not persist else "Copying")
+        )
+        for file, path in file_paths.items():
+            if replace:
+                add = True
+            else:
+                if not os.path.isfile(os.path.join(path,
+                                                   os.path.basename(file))):
+                    add = True
+            if add:
+                logger.info("  {file:>{length}} -> ./{path}/{file}".format(
+                    length = max_file_length,
+                    file   = os.path.basename(file),
+                    path   = path
+                ))
+                shutil.move(file, path)
 
-def flat(origin, destination, replace=True, grain=3, logger=None):
+def flat(origin, destination, replace=True, grain=3, persist=False, logger=None):
     if not logger:
         logger = loggers.stream_logger(1)
     date = formatting.date(grain)
+
+def uniquify(seq, idfun=None):
+    '''This function copied from:
+    http://www.peterbe.com/plog/uniqifiers-benchmark
+    This is function 'f5' from that page, by Peter Bengtsson.
+
+    Order-preserving, fast method of removing duplicates from a list.
+    '''
+    # order preserving
+    if idfun is None:
+        def idfun(x): return x
+    seen = {}
+    result = []
+    for item in seq:
+        marker = idfun(item)
+        if marker in seen: continue
+        seen[marker] = 1
+        result.append(item)
+    return result
 
 class ChDir:
     '''Changes directories to the new path and retains the old directory.

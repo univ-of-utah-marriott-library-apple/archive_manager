@@ -13,12 +13,13 @@ from automatic_archiver.formatting import date
 options = {}
 options['long_name'] = "Automatic Archiver"
 options['name']      = "automatic_archiver.py"
-options['version']   = 0.2
+options['version']   = 0.3
 
-def main(origin, destination, flat, grain, replace, logger):
+def main(origin, destination, flat, grain, replace, persist, logger):
     logger.info('-' * 80)
     logger.info("Archiving from:     " + origin)
     logger.info("Archiving to:       " + destination)
+    logger.info("Persisting:         " + str(persist))
     try:
         granularity(grain)
     except:
@@ -41,9 +42,9 @@ def main(origin, destination, flat, grain, replace, logger):
     logger.info("BEGINNING ARCHIVAL")
 
     if flat:
-        autoamtic_archiver.archivers.flat(origin, destination, replace, grain, logger)
+        autoamtic_archiver.archivers.flat(origin, destination, replace, grain, persist, logger)
     else:
-        automatic_archiver.archivers.nested(origin, destination, replace, grain, logger)
+        automatic_archiver.archivers.nested(origin, destination, replace, grain, persist, logger)
 
 class ArgumentParser(argparse.ArgumentParser):
     '''Custom ArgumentParser for error handling.'''
@@ -97,6 +98,7 @@ if __name__ == '__main__':
     parser.add_argument('--flat', action='store_true', default=False)
     parser.add_argument('--granularity', default='day', dest='grain')
     parser.add_argument('--replace', action='store_true', default=True)
+    parser.add_argument('--persist', action='store_true', default=False)
     parser.add_argument('origin', nargs='?')
     parser.add_argument('destination', nargs='?')
     args = parser.parse_args()
@@ -120,6 +122,7 @@ if __name__ == '__main__':
                 flat        = args.flat,
                 grain       = args.grain,
                 replace     = args.replace,
+                persist     = args.persist,
                 logger      = logger
             )
         except KeyboardInterrupt:
