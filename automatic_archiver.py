@@ -13,13 +13,14 @@ from automatic_archiver.formatting import date
 options = {}
 options['long_name'] = "Automatic Archiver"
 options['name']      = "automatic_archiver.py"
-options['version']   = 0.4
+options['version']   = 0.5
 
-def main(origin, destination, flat, delimiter, grain, replace, persist, logger):
+def main(origin, destination, flat, delimiter, grain, replace, persist, update_time, logger):
     logger.info('-' * 80)
     logger.info("Archiving from:     " + origin)
     logger.info("Archiving to:       " + destination)
     logger.info("Persisting:         " + str(persist))
+    logger.info("Replacing:          " + str(replace))
     try:
         granularity(grain)
     except:
@@ -43,11 +44,11 @@ def main(origin, destination, flat, delimiter, grain, replace, persist, logger):
 
     if flat:
         automatic_archiver.archivers.flat(
-            origin, destination, replace, grain, persist, delimiter, logger
+            origin, destination, replace, grain, persist, delimiter, update_time, logger
         )
     else:
         automatic_archiver.archivers.nested(
-            origin, destination, replace, grain, persist, logger
+            origin, destination, replace, grain, persist, update_time, logger
         )
 
 class ArgumentParser(argparse.ArgumentParser):
@@ -71,8 +72,8 @@ def usage(short=False):
         version()
 
     print('''\
-usage: {name} [-hvn] [-l log] [--flat] [--granularity]
-\t[--replace] [--persist] origin destination
+usage: {name} [-hvn] [-l log] [--flat] [--delimiter delimiter]
+\t[--granularity grain] [--replace] [--persist] origin destination
 
 Automatically archives files from `origin` into `destination`. This can either
 be done in a nested directory format using date components as the directories,
@@ -89,7 +90,7 @@ archived file.
         Outputs log files to `log` instead of the default. (This is overrideden
         by --no-log.)
 
-    --granularity
+    --granularity grain
         Determines how many aspects of the date should be used in sorting. See
         section GRANULARITY below for possible options.
     --flat
@@ -106,6 +107,9 @@ archived file.
     --persist
         Leaves the original files in their places and only copies them to
         `destination`.
+    --update-time
+        After files are moved or copied to the new location, the new files will
+        have their access and modified times updated to the current time.
 
 GRANULARITY
     Different applications of archival may require different levels of what can
@@ -121,8 +125,7 @@ GRANULARITY
         6    Second
 
     The granularity can be given either as the number (1, 2, ...) or the word
-    form ('Year', 'month', ...).
-\
+    form ('Year', 'month', ...).\
 '''.format(name=options['name']))
 
 def setup_logger(log, log_dest):
@@ -154,6 +157,7 @@ if __name__ == '__main__':
     parser.add_argument('--no-replace', action='store_true')
     parser.add_argument('--persist', action='store_true')
     parser.add_argument('--delimiter', default='.')
+    parser.add_argument('--update-time', action='store_true')
     parser.add_argument('origin', nargs='?')
     parser.add_argument('destination', nargs='?')
     args = parser.parse_args()
@@ -179,6 +183,7 @@ if __name__ == '__main__':
                 grain       = args.grain.lower(),
                 replace     = not args.no_replace,
                 persist     = args.persist,
+                update_time = args.update_time,
                 logger      = logger
             )
         except KeyboardInterrupt:
