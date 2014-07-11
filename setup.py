@@ -4,7 +4,7 @@ from archive_manager import __version__
 setup(
     name='Archive Manager',
     version=__version__,
-    url='https://github.com/univ-of-utah-marriott-library-apple/automatic-archiver',
+    url='https://github.com/univ-of-utah-marriott-library-apple/archive_manager',
     author='Pierce Darragh, Marriott Library IT Services',
     author_email='mlib-its-mac-github@lists.utah.edu',
     description=('Archives items from one location into another, with renaming and depth!'),
