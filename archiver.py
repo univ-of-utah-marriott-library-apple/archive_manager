@@ -6,14 +6,14 @@ import time
 
 from datetime import datetime
 
-import automatic_archiver.archivers
-from automatic_archiver.formatting import granularity
-from automatic_archiver.formatting import date
+import archive_manager.archivers
+from archive_manager.formatting import granularity
+from archive_manager.formatting import date
 
 options = {}
-options['long_name'] = "Automatic Archiver"
-options['name']      = "automatic_archiver.py"
-options['version']   = 0.5
+options['long_name'] = "Archive Manager"
+options['name']      = "archive_manager.py"
+options['version']   = archive_manager.__version__
 
 def main(origin, destination, flat, delimiter, grain, replace, persist, update_time, logger):
     logger.info('-' * 80)
@@ -43,11 +43,11 @@ def main(origin, destination, flat, delimiter, grain, replace, persist, update_t
     logger.info("BEGINNING ARCHIVAL")
 
     if flat:
-        automatic_archiver.archivers.flat(
+        archive_manager.archivers.flat(
             origin, destination, replace, grain, persist, delimiter, update_time, logger
         )
     else:
-        automatic_archiver.archivers.nested(
+        archive_manager.archivers.nested(
             origin, destination, replace, grain, persist, update_time, logger
         )
 
@@ -124,8 +124,8 @@ GRANULARITY
         5    Minute
         6    Second
 
-    The granularity can be given either as the number (1, 2, ...) or the word
-    form ('Year', 'month', ...).\
+    The granularity can be given either as the number (1, 2, 3, ...) or the word
+    form ('Year', 'month', 'DAY', ...).\
 '''.format(name=options['name']))
 
 def setup_logger(log, log_dest):
@@ -188,7 +188,7 @@ if __name__ == '__main__':
             )
         except KeyboardInterrupt:
             print("\033[2K\nStopped.") # '\033[2K' is an ANSI escape sequence
-                                          # to clear the entire line.
+                                       # to clear the entire line.
             logger.fatal("KeybaordInterrupt given. Forced to quit.")
         except:
             message = (
