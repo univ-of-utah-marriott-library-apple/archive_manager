@@ -85,6 +85,8 @@ def nested(origin, destination, replace=True, grain=3, persist=False, update_tim
             # Each file gets wrapped in a try/except block to ensure that flow
             # is not interrupted if there's an issue with one of them.
             try:
+                # Set the file's destination.
+                file_destination = os.path.join(path, os.path.basename(file))
                 # Determine whether the file should be put in the destination.
                 add = False
                 if replace:
@@ -93,21 +95,21 @@ def nested(origin, destination, replace=True, grain=3, persist=False, update_tim
                 else:
                     # If we're not okay with replacing it, ensure that the file
                     # does not exist in the destination already.
-                    if not os.path.isfile(os.path.join(path, os.path.basename(file))):
+                    if not os.path.isfile(file_destination):
                         add = True
                 # If we're okay with adding the file, then do the thing!
                 if add:
-                    logger.info("  {file:>{length}} {dash}> ./{path}/{file}".format(
-                        length = max_file_length,
+                    logger.info("  {file:>{length}} {dash}> ./{dest}".format(
                         file   = os.path.basename(file),
-                        path   = path,
+                        length = max_file_length,
+                        dest   = file_destination,
                         dash   = '=' if persist else '-'
                     ))
                     # If the file exists in the destination, delete it before
                     # attempting to move a new copy there. This also accounts
                     # for symbolic links.
-                    if os.path.isfile(new_name):
-                        os.remove(new_name)
+                    if os.path.isfile(file_destination):
+                        os.remove(file_destination)
                     # Copy if persisting data; move otherwise.
                     if persist:
                         shutil.copy2(file, path)
@@ -115,7 +117,7 @@ def nested(origin, destination, replace=True, grain=3, persist=False, update_tim
                         shutil.move(file, path)
                     # Update the time as needed.
                     if update_time:
-                        os.utime(os.path.join(path, os.path.basename(file)), None)
+                        os.utime(file_destination, None)
             except (IOError, OSError) as e:
                 # These are the most likely errors.
                 logger.error("{}".format(repr(e)))

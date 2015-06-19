@@ -43,13 +43,9 @@ def main(origin, destination, flat, delimiter, grain, replace, persist, update_t
     logger.info("BEGINNING ARCHIVAL")
 
     if flat:
-        archive_manager.archivers.flat(
-            origin, destination, replace, grain, persist, delimiter, update_time, logger
-        )
+        archive_manager.archivers.flat(origin, destination, replace, grain, persist, delimiter, update_time, logger)
     else:
-        archive_manager.archivers.nested(
-            origin, destination, replace, grain, persist, update_time, logger
-        )
+        archive_manager.archivers.nested(origin, destination, replace, grain, persist, update_time, logger)
 
 class ArgumentParser(argparse.ArgumentParser):
     '''Custom ArgumentParser for error handling.'''
@@ -191,10 +187,7 @@ if __name__ == '__main__':
                                        # to clear the entire line.
             logger.fatal("KeybaordInterrupt given. Forced to quit.")
         except:
-            message = (
-                str(sys.exc_info()[0].__name__) + ": " +
-                str(sys.exc_info()[1].message)
-            )
+            message = "{errname}: {error}".format(errname=sys.exc_info()[0].__name__, error=' '.join(sys.exc_info()[1]))
             print(message)
             logger.error(message)
             sys.exit(3)
