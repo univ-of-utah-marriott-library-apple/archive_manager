@@ -9,6 +9,10 @@ A simple archival system that helps you to back up your files based on their mod
 * [Requirements](#requirements)
 * [Contact](#contact)
 * [Uninstall](#uninstall)
+* [Purpose](#purpose)
+* [Usage](#usage)
+  * [Options](#options)
+  * [Examples](#examples)
 
 ## Download
 
