@@ -13,6 +13,7 @@ A simple archival system that helps you to back up your files based on their mod
 * [Usage](#usage)
   * [Options](#options)
   * [Examples](#examples)
+* [Update History](#update-history)
 
 ## Download
 
@@ -114,3 +115,18 @@ destination
 |--2014.09.21.File3
 |--2014.11.19.File4
 ```
+
+## Update History
+
+This is a short, reverse-chronological summary of the updates to this project.
+
+| Date       | Version | Update Description                                         |
+|------------|:-------:|------------------------------------------------------------|
+| 2015-06-19 | 1.1.1   | Fixed an issue where files weren't moved properly.         |
+| 2015-06-01 | 1.1.0   | Resiliency improved (doesn't fail as easily).              |
+| 2014-07-11 | 1.0     | Initial release. Mostly functional, with a package.        |
+| 2014-07-01 | 0.5     | Can now update the modification timestamps on new files.   |
+| 2014-07-01 | 0.4     | Added ability to change file name delimiter.               |
+| 2014-07-01 | 0.3     | Rudimentary functionality implemented.                     |
+| 2014-06-30 | 0.2     | Outline of all processes completed.                        |
+| 2014-06-27 | 0.1     | Project started.                                           |
