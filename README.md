@@ -31,6 +31,8 @@ To remove Archive Manager from your system, download the .dmg and run the "Unins
 
 In our environment, we create disk images to be used to quickly restore computers to known states. We like to keep backups of these images, sorted by date, but often we would forget to upload new versions to our remote backup server. Eventually we decided to just automate the process, and so Archive Manager was born.
 
+Archive Manager is a script that moves files from one location to another. The advantage of Archive Manager over simply scripting a `mv` or `cp` is that Archive Manager will automatically sort the files within the destination directory. In its regular mode of operation, subdirectories will be created within the destination based on the modification time of the files in the origin. The amount of subdirectories can be controlled, resulting in either a very fine or broad grouping of the files. This is useful when you have time-sensitive backups (e.g. you want to back up a year's worth of log files, but you want them grouped into subdirectories by day).
+
 ## Usage
 
 ```
@@ -78,7 +80,7 @@ Imagine starting with an origin directory with these files:
 
 ```
 (File)         (Last Modified)
-Origin
+origin
 |--File1     Aug 08, 2014 12:34:00
 |--File2     Aug 12, 2014 00:00:00
 |--File3     Sep 21, 2014 03:55:00
@@ -88,7 +90,7 @@ Origin
 If you were to run Archive Manager as `archiver.py origin destination`, then the destination would look like:
 
 ```
-Destination
+destination
 |--2014
    |--08
    |  |--File1
@@ -97,4 +99,14 @@ Destination
    |  |--File3
    |--11
       |--File4
+```
+
+However, if you were to run Archive Manager as `archiver.py --flat origin destination`, then the destination would look like:
+
+```
+destination
+|--2014.08.08.File1
+|--2014.08.12.File2
+|--2014.09.21.File3
+|--2014.11.19.File4
 ```
