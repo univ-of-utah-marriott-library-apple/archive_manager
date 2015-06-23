@@ -38,6 +38,8 @@ In our environment, we create disk images to be used to quickly restore computer
 
 Archive Manager is a script that moves files from one location to another. The advantage of Archive Manager over simply scripting a `mv` or `cp` is that Archive Manager will automatically sort the files within the destination directory. In its regular mode of operation, subdirectories will be created within the destination based on the modification time of the files in the origin. The amount of subdirectories can be controlled, resulting in either a very fine or broad grouping of the files. This is useful when you have time-sensitive backups (e.g. you want to back up a year's worth of log files, but you want them grouped into subdirectories by day).
 
+It also doubles as rudimentary cleanup, since when a file is moved and not persisted (explained in the [options](#options)) the original file will be deleted. This keeps things tidy while also helping you to organize your files.
+
 ## Usage
 
 ```
